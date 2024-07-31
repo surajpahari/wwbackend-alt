@@ -4,9 +4,10 @@ use App\Http\Controllers\AssetController;
 use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BankBalanceController;
 use App\Http\Controllers\CashInHandController;
+use App\Http\Controllers\DebtController;
+use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\SavingController;
-use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -37,13 +38,9 @@ Route::controller(StockController::class)->group(function () {
     Route::post('random_stock', 'random10');
 });
 
-Route::controller(SavingController::class)->group(function () {
-    Route::get('savings/fetch', 'fetch');
-});
-
 Route::get('get-expense-items', function (Request $request) {
 
-    $id = $request->query('id');// Assuming the user sends the 'id' in the request body
+    $id = $request->query('id'); // Assuming the user sends the 'id' in the request body
 
     switch ($id) {
         case '1':
@@ -60,7 +57,7 @@ Route::get('get-expense-items', function (Request $request) {
                 [
                     'category' => 'Food',
                     'id' => 2,
-                    'items' => [['name' => 'Eggs', 'amount' => 2000,'date'=>'2023/05/01'], ['name' => 'Oats', 'amount' => 20], ['name' => 'other', 'amount' => 20]],
+                    'items' => [['name' => 'Eggs', 'amount' => 2000, 'date' => '2023/05/01'], ['name' => 'Oats', 'amount' => 20], ['name' => 'other', 'amount' => 20]],
                 ],
             ];
             break;
@@ -82,6 +79,7 @@ Route::get('get-expense-items', function (Request $request) {
                 ],
             ]; // Empty response for unknown id
     }
+
     return response()->json($data);
 })->middleware('auth:sanctum');
 
@@ -154,45 +152,49 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::resource('bank-balances', BankBalanceController::class);
     Route::resource('cash-in-hand', CashInHandController::class);
     Route::resource('assets', AssetController::class);
+    Route::get('/assets/fetch', [AssetController::class, 'fetch']);
     Route::resource('expenses', ExpenseController::class);
     Route::get('/upcoming', [ExpenseController::class, 'getUpcomingExpenses']);
     Route::resource('bank-balances', BankBalanceController::class);
     Route::get('/all-accounts', [BankBalanceController::class, 'getBankAccounts']);
     Route::get('/get-balance-info', [BalanceController::class, 'getTotalBalance']);
-    Route::get ('/all-expense-categories',[ExpenseCategoryController::class,'getAllCategory']);
+    Route::get('/all-expense-categories', [ExpenseCategoryController::class, 'getAllCategory']);
+    Route::resource('debts', DebtController::class);
+    Route::get('/debts/fetch', [DebtController::class, 'fetch']);
+
+    Route::resource('savings', SavingController::class);
+    Route::get('/savings/fetch', [SavingController::class, 'fetch']);
     //for the stocks
 });
-
-
-
 
 //TESTING TESTING TESTING
 //Route for the test
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post("/stocks/add_stocks",function(){
+    Route::post('/stocks/add_stocks', function () {
         return response()->json('hell');
     });
 
-   Route::get('/stocks/bought-stocks',function(){
-    $data = [
-        [
-            'id'=>1,
-            'stock'=>[
-                'id'=>1,
-                'symbol'=>"PFL",
-                'securityName'=>"Pokhara finance",
-                'name'=>"Pokhara finanance",
+    Route::get('/stocks/bought-stocks', function () {
+        $data = [
+            [
+                'id' => 1,
+                'stock' => [
+                    'id' => 1,
+                    'symbol' => 'PFL',
+                    'securityName' => 'Pokhara finance',
+                    'name' => 'Pokhara finanance',
+                ],
+                'date' => '2022/03/5',
+                'unit' => 15,
+                'amount' => 1200,
             ],
-            'date'=>"2022/03/5",
-            'unit'=>15,
-            'amount'=>1200
-        ]
-    ];
-    return response()->json($data);
+        ];
+
+        return response()->json($data);
     });
 
     //fetch-debts
-    Route::get('/fetch-debts',function(){
+    Route::get('/fetch-debts', function () {
         $data = [
             [
                 'name' => 'Home Loan',
@@ -206,55 +208,32 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ],
 
         ];
+
         return response()->json($data);
     });
 
-    //fetch assets
-    Route::get('/fetch-assets',function(){
+    //fetching category and its expense for last 7 days
+    Route::get('/expenses-category', function () {
         $data = [
             [
-                'name' => 'Education',
+                'category' => 'Education',
                 'amount' => 7300,
                 'id' => 1,
             ],
             [
-                'name' => 'Food',
+                'category' => 'Food',
                 'amount' => 1500,
                 'id' => 2,
             ],
             [
-                'name' => 'Others',
+                'category' => 'Others',
                 'amount' => 1500,
                 'id' => 5,
             ],
 
         ];
+
         return response()->json($data);
-    });
-
-    //fetching category and its expense for last 7 days
-    Route::get('/expenses-category',function(){
-    $data = [
-        [
-            'category' => 'Education',
-            'amount' => 7300,
-            'id' => 1,
-        ],
-        [
-            'category' => 'Food',
-            'amount' => 1500,
-            'id' => 2,
-        ],
-        [
-            'category' => 'Others',
-            'amount' => 1500,
-            'id' => 5,
-        ],
-
-    ];
-    return response()->json($data);
     });
 }
 );
-
-
